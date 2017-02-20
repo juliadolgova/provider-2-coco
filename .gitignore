@@ -1,0 +1,8 @@
+*.py[cod]
+
+.idea
+.hlam
+\source
+\keyring
+settings*
+gpg.exe
