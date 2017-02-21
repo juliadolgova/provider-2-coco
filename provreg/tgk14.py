@@ -18,7 +18,7 @@ class TGK14(ProvData):
         # Заголовки в исходном файле ТГК14:
         # NLS	L_NAME	F_NAME	M_NAME	CITY	NAIM	DOM	FLAT	DATE	VID_SERV	SALDO_TGK	CHARGE
         # ключи словаря: ключи из API для импорта в кокос
-        # значения словаря: список: имя поля висходном файле, тип поля в исходном файле, тип в словаре для выгрузки
+        # значения словаря: список: имя поля в исходном файле, тип поля в исходном файле, тип в словаре для выгрузки
         # TODO Если потребуется изменять типы датовых полей, то доработать _record_to_dict_api
         self._fields_map = {
             'number': ['NLS', str, unicode],
@@ -42,16 +42,6 @@ class TGK14(ProvData):
         return self._filename
 
     filename = property(get_filename, set_filename, None, u'Имя исходного файла')
-
-    @staticmethod
-    def _default_dict():
-        return {
-            'fine': None,
-            'charge': None,
-            'region': u'',
-            'territory': u'',
-            'pfxstreet': u''
-        }
 
     def _record_to_dict_api(self, record):
         dict_api = self._default_dict()

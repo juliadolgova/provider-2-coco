@@ -27,3 +27,13 @@ class ProvData:
     @abstractmethod
     def source_data_errors(self): pass
     """Вернуть ошибки в исходных данных"""
+
+    @staticmethod
+    def _default_dict():
+        return {
+            'fine': None,
+            'charge': None,
+            'region': u'',
+            'territory': u'',
+            'pfxstreet': u''
+        }
