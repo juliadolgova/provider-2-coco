@@ -22,7 +22,7 @@ class Dom(ProvDataText):
         # но в обработке полученного значения (например _dict_re_to_dict_api) не предусмотрено
         date_re = r'(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)?\d\d'
 
-        # Регулярки для сборки __line_re
+        # Регулярки для сборки _line_re
         abonent_re = r'(?P<abonent>.*)'
         address_re = r'(?P<address>.*)'
         account_re = r'(?P<account>[a-z0-9A-Z]+)'
