@@ -1,25 +1,18 @@
 # -*- encoding: utf-8 -*-
-from datetime import datetime
 import re
 
-from provdata import ProvData
-from srcutils import split_fio, process_source_exception
+from provdata import ProvDataText
 
 
-class Dom(ProvData):
+class Dom(ProvDataText):
     def __init__(self, filename='', service_code=''):
-        ProvData.__init__(self)
-        # исходный файл
-        self._filename = filename
-        # кодировка исходного файла
-        self._coding = 'cp1251'
-        # Внешняя услуга
+        ProvDataText.__init__(self, filename)
+        # Код услуги
         self._service_code = service_code
         # Размер в байтах когда требуется проанализировать только начало файла (достаточное чтобы попали все заголовки)
         self.__bufferPreAnalyze = 3000
         # количество строк для предварительного анализа (достаточное чтобы попали все заголовки)
         self.__linesCountPreAnalyze = 100
-        self.__errors = []
 
         # Пример строки для поставщика:
         # Ипатов Роман Михайлович;ЧИТА,БОГОМЯГКОВА,65,62;9010747;;;;;01/11/2016;30/11/2016;31:0
@@ -41,7 +34,7 @@ class Dom(ProvData):
         dateto_re = r'(?P<dateto>%(date_re)s)' % {'date_re': date_re}
         f10_re = r'(?P<f10>.*)'
 
-        self.__line_re = ';'.join([
+        self._line_re = ';'.join([
             abonent_re,
             address_re,
             account_re,
@@ -54,51 +47,6 @@ class Dom(ProvData):
             f10_re
         ])
 
-    def set_filename(self, filename):
-        self._filename = filename
-        self.__errors = []
-
-    def get_filename(self):
-        return self._filename
-
-    filename = property(get_filename, set_filename, None, u'Имя исходного файла')
-
-    def _dict_re_to_dict_api(self, dict_re):
-        dict_api = self._default_dict()
-        dict_api['number'] = dict_re['account']
-        dict_api['lastname'], dict_api['firstname'], dict_api['middlename'] = split_fio(dict_re['abonent'])
-        splitted_address = dict_re['address'].strip().rsplit(',', 4)
-        dict_api['city'], dict_api['street'], dict_api['house'], dict_api['flat'] = splitted_address
-        dict_api['service'] = self._service_code
-        dict_api['period'] = datetime.strptime(dict_re['dateto'], r'%d/%m/%Y')
-        dict_api['debt'] = float(dict_re['debt']) if dict_re['debt'] else 0
-        return dict_api
-
-    @staticmethod
-    def _get_header_param_value(source_lines, param_name):
-        for line in source_lines:
-            m = re.match(r"#%(ParamName)s\s(.*)(;.*)?" % {'ParamName': param_name}, line)
-            if m:
-                return m.group(1).strip()
-        return None
-
-    def generate_accounts_decoded(self):
-        # TODO Заполнить __errors
-        line_num = 0
-        with open(self._filename, 'r') as f:
-            for line in f:
-                line_num += 1
-                try:
-                    line = line.decode(self._coding)
-                    if line.startswith("#"):
-                        continue
-                    m = re.match(self.__line_re, line)
-                    if m:
-                        yield self._dict_re_to_dict_api(m.groupdict())
-                except Exception as exception_instance:
-                    error_message = 'Error while processing line %d in file %s'
-                    process_source_exception(error_message % (line_num, self._filename), exception_instance)
-
     def source_data_correct(self):
         with open(self._filename, 'r') as f:
             first_lines = f.readlines(self.__bufferPreAnalyze)[:self.__linesCountPreAnalyze]
@@ -107,10 +55,8 @@ class Dom(ProvData):
             f.seek(0)
             file_sum_records = 0
             for line in f:
-                m = re.match(self.__line_re, line)
+                m = re.match(self._line_re, line)
                 if m:
                     file_sum_records += float(m.group('debt')) if m.group('debt') else 0
         return round(file_sum_header - file_sum_records, 2) == 0
 
-    def source_data_errors(self):
-        return self.__errors
