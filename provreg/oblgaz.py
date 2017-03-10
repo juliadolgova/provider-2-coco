@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
-from datetime import datetime
 import re
 
 from provdata import ProvDataText
-from srcutils import split_fio, process_source_exception
 
 
 class Oblgaz(ProvDataText):

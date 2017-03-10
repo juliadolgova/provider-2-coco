@@ -3,7 +3,6 @@ from dbfpy import dbf
 from datetime import date, datetime, time
 
 from provdata import ProvData
-from srcutils import process_source_exception
 
 
 class TGK14(ProvData):
@@ -13,7 +12,6 @@ class TGK14(ProvData):
         self._filename = filename
         # кодировка исходного файла
         self._coding = 'cp1251'
-        self.__errors = []
 
         # Заголовки в исходном файле ТГК14:
         # NLS	L_NAME	F_NAME	M_NAME	CITY	NAIM	DOM	FLAT	DATE	VID_SERV	SALDO_TGK	CHARGE
@@ -36,7 +34,6 @@ class TGK14(ProvData):
 
     def set_filename(self, filename):
         self._filename = filename
-        self.__errors = []
 
     def get_filename(self):
         return self._filename
@@ -57,12 +54,10 @@ class TGK14(ProvData):
                 record_type = datetime
             if record_type != destination_type:
                 record_field = destination_type(record_field)
-                # record_type = new_type # раскомментировать для дальнейшего преобразования
             dict_api[key] = record_field
         return dict_api
 
     def generate_accounts_decoded(self):
-        # TODO Заполнить __errors
         record_num = 0
         db = dbf.Dbf(self._filename)
         for record in db:
@@ -70,11 +65,16 @@ class TGK14(ProvData):
             try:
                 yield self._record_to_dict_api(record)
             except Exception as exception_instance:
-                error_message = 'Error while processing line %d in file %s'
-                process_source_exception(error_message % (record_num, self._filename), exception_instance)
+                if self.error_processor:
+                    self.error_processor(
+                        file=self._filename,
+                        at=record_num,
+                        record=record,
+                        exception=exception_instance
+                    )
+                else:
+                    raise
 
     def source_data_correct(self):
+        """Проверять нечего. Возвращает True"""
         return True
-
-    def source_data_errors(self):
-        return self.__errors

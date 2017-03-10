@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-import traceback
-import sys
 
 
 def split_fio(fio):
@@ -31,9 +29,11 @@ def split_fio(fio):
     return [lastname, firstname, middlename]
 
 
-def process_source_exception(description, instance_exception):
-    print description
-    print traceback.format_exception(*sys.exc_info())
+def source_error_print(**kwargs):
+    print 'Ошибка при преобразовании данных из файла {}'.format(kwargs['file'])
+    print 'Запись: {}'.format(kwargs['record'])
+    print '#: {}'.format(kwargs['at'])
+    print 'Exception: {}'.format(kwargs['exception'])
 
 
 def process_error(description):

@@ -3,7 +3,7 @@ import re
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
-from srcutils import split_fio, process_source_exception
+from srcutils import split_fio
 
 
 # TODO Добавить промежуточный класс ProvDataFile
@@ -13,28 +13,33 @@ class ProvData:
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        self._records_count = None
+        # Обработчик исключений при чтении/преобразовании записи в источнике данных в generate_accounts_decoded()
+        self.error_processor = None
 
     def get_records_count(self):
-        return self._records_count
+        return None
 
-    records_count = property(get_records_count, None, None, u'Количество записей либо None если количество не доступно')
-
-    @abstractmethod
-    def generate_accounts_decoded(self): pass
-    """Вернуть словарь для импорта в кокос"""
-
-    @abstractmethod
-    def source_data_correct(self): pass
-    """Сообщить корректные ли данные"""
+    records_count = property(
+        get_records_count,
+        None,
+        None,
+        u'Количество записей либо None если количество не доступно. \
+        Не обязательно совпадает с количеством строк на выходе'
+    )
 
     @abstractmethod
-    def source_data_errors(self): pass
-    """Вернуть ошибки в исходных данных"""
+    def generate_accounts_decoded(self):
+        """Возвращает словарь для импорта в кокос"""
+        pass
+
+    @abstractmethod
+    def source_data_correct(self):
+        """Сообщает корректные ли данные"""
+        pass
 
     @staticmethod
     def _default_dict():
-        """Заполняем необязательные параметры"""
+        """Заполняет необязательные параметры"""
         return {
             'fine': None,
             'charge': None,
@@ -48,8 +53,7 @@ class ProvDataText(ProvData):
     """
     класс - поддержка текстового реестра имеющего заголовочные строки в формате
     # Параметр: Значение параметра
-    Не делает проверку данных на корректность
-    Cтроки начинающиеся с # - pfujkjdjxyst kb,j rj
+    Строки начинающиеся с # - заголовочные либо коментарии
     """
     def __init__(self, filename=''):
         ProvData.__init__(self)
@@ -59,14 +63,13 @@ class ProvDataText(ProvData):
         self._filename = filename
         # кодировка исходного файла
         self._coding = 'cp1251'
-        self.__errors = []
         # пример регулярного выражения, переопределить в наследнике при необходимости
         self._line_re = '(?P<abonent>.*);(?P<address>.*);(?P<account>.*);(?P<debt>.*);(?P<datefrom>.*);(?P<dateto>.*)'
+        # формат датовых полей в исходном файле
         self._format_datetime = r'%d/%m/%Y'
 
     def set_filename(self, filename):
         self._filename = filename
-        self.__errors = []
 
     def get_filename(self):
         return self._filename
@@ -93,24 +96,27 @@ class ProvDataText(ProvData):
         return None
 
     def generate_accounts_decoded(self):
-        # TODO Заполнить __errors
         line_num = 0
         with open(self._filename, 'r') as f:
             for line in f:
                 line_num += 1
                 try:
-                    line = line.decode(self._coding)
-                    if line.startswith("#"):
+                    line_decoded = line.decode(self._coding)
+                    if line_decoded.startswith("#"):
                         continue
-                    m = re.match(self._line_re, line)
+                    m = re.match(self._line_re, line_decoded)
                     if m:
                         yield self._dict_re_to_dict_api(m.groupdict())
                 except Exception as exception_instance:
-                    error_message = 'Error while processing line %d in file %s'
-                    process_source_exception(error_message % (line_num, self._filename), exception_instance)
+                    if self.error_processor:
+                        self.error_processor(
+                            file=self._filename,
+                            at=line_num,
+                            record=line,
+                            exception=exception_instance
+                        )
+                    else:
+                        raise
 
     def source_data_correct(self):
         return True
-
-    def source_data_errors(self):
-        return self.__errors
