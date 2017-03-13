@@ -9,10 +9,6 @@ class Dom(ProvDataText):
         ProvDataText.__init__(self, filename)
         # Код услуги
         self._service_code = service_code
-        # Размер в байтах когда требуется проанализировать только начало файла (достаточное чтобы попали все заголовки)
-        self.__bufferPreAnalyze = 3000
-        # количество строк для предварительного анализа (достаточное чтобы попали все заголовки)
-        self.__linesCountPreAnalyze = 100
 
         # Пример строки для поставщика:
         # Ипатов Роман Михайлович;ЧИТА,БОГОМЯГКОВА,65,62;9010747;;;;;01/11/2016;30/11/2016;31:0
@@ -48,11 +44,9 @@ class Dom(ProvDataText):
         ])
 
     def source_data_correct(self):
-        with open(self._filename, 'r') as f:
-            first_lines = f.readlines(self.__bufferPreAnalyze)[:self.__linesCountPreAnalyze]
-            file_sum_header = float(self._get_header_param_value(first_lines, 'FILESUM'))
+        file_sum_header = float(self._get_header_param_value('FILESUM'))
 
-            f.seek(0)
+        with open(self._filename, 'r') as f:
             file_sum_records = 0
             for line in f:
                 m = re.match(self._line_re, line)

@@ -11,11 +11,6 @@ class Oblgaz(ProvDataText):
         self._service_code = '3149'
         self._format_datetime = r'%d/%m/%y'
 
-        # Размер в байтах когда требуется проанализировать только начало файла (достаточное чтобы попали все заголовки)
-        self.__bufferPreAnalyze = 3000
-        # количество строк для предварительного анализа (достаточное чтобы попали все заголовки)
-        self.__linesCountPreAnalyze = 100
-
         # Пример строки для облгаза:
         # АВДЕЕВА НАДЕЖДА АЛЕКСЕЕВНА;Кокуй,Комсомольская,16,18;0984;-153.83;;01/06/15;30/06/15
         # Регулярки вспомогательные
@@ -34,11 +29,9 @@ class Oblgaz(ProvDataText):
         self._line_re = ';'.join([abonent_re, address_re, account_re, debt_re, f5_re, datefrom_re, dateto_re])
 
     def source_data_correct(self):
-        with open(self._filename, 'r') as f:
-            first_lines = f.readlines(self.__bufferPreAnalyze)[:self.__linesCountPreAnalyze]
-            file_sum_header = float(self._get_header_param_value(first_lines, 'FILESUM'))
+        file_sum_header = float(self._get_header_param_value('FILESUM'))
 
-            f.seek(0)
+        with open(self._filename, 'r') as f:
             file_sum_records = 0
             for line in f:
                 m = re.match(self._line_re, line)

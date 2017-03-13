@@ -64,6 +64,12 @@ class ProvDataText(ProvData):
         self._line_re = '(?P<abonent>.*);(?P<address>.*);(?P<account>.*);(?P<debt>.*);(?P<datefrom>.*);(?P<dateto>.*)'
         # формат датовых полей в исходном файле
         self._format_datetime = r'%d/%m/%Y'
+
+        # Размер в байтах когда требуется проанализировать только начало файла (достаточное чтобы попали все заголовки)
+        self._bufferPreAnalyze = 3000
+        # количество строк для предварительного анализа (достаточное чтобы попали все заголовки)
+        self._linesCountPreAnalyze = 100
+
         # дата, которую использовать, если в реестре нет даты. Тип datetime
         self.debt_date = None
         # разделитель дробной и целой части
@@ -102,8 +108,10 @@ class ProvDataText(ProvData):
         dict_api['debt'] = float(debt) if debt else 0
         return dict_api
 
-    @staticmethod
-    def _get_header_param_value(source_lines, param_name):
+    def _get_header_param_value(self, param_name):
+        with open(self._filename, 'r') as f:
+            source_lines = f.readlines(self._bufferPreAnalyze)[:self._linesCountPreAnalyze]
+
         for line in source_lines:
             m = re.match(r"#%(ParamName)s\s(.*)(;.*)?" % {'ParamName': param_name}, line)
             if m:

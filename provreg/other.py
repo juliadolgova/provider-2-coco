@@ -1,18 +1,25 @@
 # -*- encoding: utf-8 -*-
 
+from oblgaz import Oblgaz
 from provdata import ProvDataText
-from srcutils import array_pad
 
 
-class Domremstroy(ProvDataText):
+class Lider(Oblgaz):
     def __init__(self, filename=''):
+        Oblgaz.__init__(self, filename=filename)
+        self._format_datetime = r'%d/%m/%y'
+        self._service_code = self._get_header_param_value('SERVICE')
+
+
+class Region(ProvDataText):
+    def __init__(self, filename='', service_code=''):
         ProvDataText.__init__(self, filename)
         # Код услуги
-        self._service_code = '2834'
+        self._service_code = service_code
         self.delimiter = ','
 
         # Пример строки для поставщика:
-        # 006589;Ломов Леонид Георгиевич 1-я Малая 1а 12;Чита,1-я Малая,1а,12;456,86
+        # 109100028;Выскубов Михаил Сергеевич;Чита,славянская,10 А,28;16443,36;
         # Регулярки вспомогательные
         num_re = r'[-+]?[0-9]*[.,]?[0-9]+'
 
@@ -26,11 +33,6 @@ class Domremstroy(ProvDataText):
             account_re,
             abonent_re,
             address_re,
-            debt_re
+            debt_re,
+            ''
         ])
-
-    def _dict_re_to_dict_api(self, dict_re):
-        dict_api = ProvDataText._dict_re_to_dict_api(self, dict_re)
-        fio = array_pad(dict_re['abonent'].replace('.', ' ').split(), 3, '')[:3]
-        dict_api['lastname'], dict_api['firstname'], dict_api['middlename'] = fio
-        return dict_api
