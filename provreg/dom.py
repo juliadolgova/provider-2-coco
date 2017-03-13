@@ -59,4 +59,3 @@ class Dom(ProvDataText):
                 if m:
                     file_sum_records += float(m.group('debt')) if m.group('debt') else 0
         return round(file_sum_header - file_sum_records, 2) == 0
-

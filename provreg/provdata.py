@@ -3,12 +3,9 @@ import re
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
-from srcutils import split_fio
+from srcutils import split_fio, array_pad
 
 
-# TODO Добавить промежуточный класс ProvDataFile
-# TODO Добавить метод seek либо посмотреть как в генератор передавать стартовую итерацию
-# TODO Определить get_records_count в потомках
 class ProvData:
     __metaclass__ = ABCMeta
 
@@ -24,7 +21,7 @@ class ProvData:
         None,
         None,
         u'Количество записей либо None если количество не доступно. \
-        Не обязательно совпадает с количеством строк на выходе'
+        Не обязательно совпадает с количеством строк на выходе(?)'  # TODO определиться на этот счет
     )
 
     @abstractmethod
@@ -67,6 +64,10 @@ class ProvDataText(ProvData):
         self._line_re = '(?P<abonent>.*);(?P<address>.*);(?P<account>.*);(?P<debt>.*);(?P<datefrom>.*);(?P<dateto>.*)'
         # формат датовых полей в исходном файле
         self._format_datetime = r'%d/%m/%Y'
+        # дата, которую использовать, если в реестре нет даты. Тип datetime
+        self.debt_date = None
+        # разделитель дробной и целой части
+        self.delimiter = '.'
 
     def set_filename(self, filename):
         self._filename = filename
@@ -78,13 +79,27 @@ class ProvDataText(ProvData):
 
     def _dict_re_to_dict_api(self, dict_re):
         dict_api = self._default_dict()
-        dict_api['number'] = dict_re['account']
-        dict_api['lastname'], dict_api['firstname'], dict_api['middlename'] = split_fio(dict_re['abonent'])
-        splitted_address = dict_re['address'].strip().rsplit(',', 4)
+        dict_api['number'] = dict_re.get('account')
+        dict_api['lastname'], dict_api['firstname'], dict_api['middlename'] = split_fio(dict_re.get('abonent'))
+
+        splitted_address = array_pad(dict_re.get('address').strip().rsplit(',', 4), 4, '')
         dict_api['city'], dict_api['street'], dict_api['house'], dict_api['flat'] = splitted_address
+
         dict_api['service'] = self._service_code
-        dict_api['period'] = datetime.strptime(dict_re['dateto'], self._format_datetime)
-        dict_api['debt'] = float(dict_re['debt']) if dict_re['debt'] else 0
+
+        dateto = dict_re.get('dateto')
+        if dateto:
+            dict_api['period'] = datetime.strptime(dateto, self._format_datetime)
+        else:
+            if self.debt_date:
+                dict_api['period'] = self.debt_date
+            else:
+                raise IOError('No data specified')
+
+        debt = dict_re.get('debt')
+        if self.delimiter != '.':
+            debt = debt.replace(self.delimiter, '.')
+        dict_api['debt'] = float(debt) if debt else 0
         return dict_api
 
     @staticmethod

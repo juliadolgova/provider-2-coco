@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 
+# TODO: Сделать по-человечески
 def split_fio(fio):
     lastname, firstname, middlename = ['', '', '']
 
@@ -31,10 +32,18 @@ def split_fio(fio):
 
 def source_error_print(**kwargs):
     print 'Ошибка при преобразовании данных из файла {}'.format(kwargs['file'])
-    print 'Запись: {}'.format(kwargs['record'])
     print '#: {}'.format(kwargs['at'])
+    print 'Запись: {}'.format(kwargs['record'].strip())
     print 'Exception: {}'.format(kwargs['exception'])
+    print ''
 
 
 def process_error(description):
     print description
+
+
+def array_pad(lst, size, value):
+    if size >= 0:
+        return lst + [value] * (size - len(lst))
+    else:
+        return [value] * (-size - len(lst)) + lst
