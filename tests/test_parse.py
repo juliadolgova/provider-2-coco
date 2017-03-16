@@ -1,68 +1,120 @@
-# -*- encoding: utf-8 -*-
-# TODO Написать правильные тесты
+# -*- coding: utf-8 -*-
+
+
+import unittest
+import exceptions
 from datetime import datetime
 
-from provreg import srcutils
 from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region
 
 
-def try_tgk14():
-    tgk14_registry = TGK14(r'.\src\Lstgks.DBF')
-    tgk14_registry.error_processor = srcutils.source_error_print
-    for _ in tgk14_registry.generate_accounts_decoded():
-        pass
+regs_data = {
+    'TGK14': {
+        'class': TGK14,
+        'args_init': {'filename': r'.\src\Lstgks.DBF'},
+        'debt': 33798.01
+    },
+    'Domremstroy': {
+        'class': Domremstroy,
+        'args_init': {'filename': r'.\src\domrem.txt'},
+        'debt_date': datetime(2017, 3, 1),
+        'debt': 17264479.69
+    },
+    'Oblgaz': {
+        'class': Oblgaz,
+        'args_init': {'filename': r'.\src\kokuy.txt'},
+        'debt': -999598623.87
+    },
+    'Dom': {
+        'class': Dom,
+        'args_init': {'filename': r'.\src\Dom1_2016_12.txt', 'service_code': '3199'},
+        'debt': 0
+    },
+    'Lider': {
+        'class': Lider,
+        'args_init': {'filename': r'.\src\lider.txt'},
+        'debt': 161889893.93
+    },
+    'Region': {
+        'class': Region,
+        'args_init': {'filename': r'.\src\region.txt', 'service_code': '8373'},
+        'debt_date': datetime(2017, 3, 1),
+        'debt': 16686924.89
+    }
+}
+
+not_correct_regs = ['Oblgaz']
 
 
-def try_oblgaz():
-    gaz_registry = Oblgaz(r'.\src\kokuy_bad.txt')
-    gaz_registry.error_processor = srcutils.source_error_print
-    print gaz_registry.source_data_correct()
-    for _ in gaz_registry.generate_accounts_decoded():
-        pass
+class TestProvData(unittest.TestCase):
 
+    def test_generate_accounts_decoded(self):
+        for reg_name in regs_data:
 
-def try_domremstroy():
-    registry = Domremstroy(r'.\src\domrem.txt')
-    registry.debt_date = datetime(2017, 3, 1)
-    # registry.delimiter = ','
-    registry.error_processor = srcutils.source_error_print
-    for _ in registry.generate_accounts_decoded():
-        pass
+            data = regs_data[reg_name]
+            prov_class = data['class']
 
+            # noinspection PyCallingNonCallable
+            registry = prov_class(**data['args_init'])
+            for key in data:
+                if hasattr(registry, key):
+                    setattr(registry, key, data[key])
+            for _ in registry.generate_accounts_decoded():
+                pass
 
-def try_dom():
-    registry = Dom(r'.\src\Dom1_2016_12.txt', 3199)
-    registry.error_processor = srcutils.source_error_print
-    registry.source_data_correct()
-    for _ in registry.generate_accounts_decoded():
-        pass
+    def test_total_debt(self):
+        for reg_name in regs_data:
 
+            data = regs_data[reg_name]
+            prov_class = data['class']
 
-def try_lider():
-    registry = Lider(r'.\src\lider.txt')
-    registry.error_processor = srcutils.source_error_print
-    print registry.source_data_correct()
-    debt = 0
-    for item in registry.generate_accounts_decoded():
-        debt += item['debt']
-    print debt
+            # noinspection PyCallingNonCallable
+            registry = prov_class(**data['args_init'])
+            for key in data:
+                if hasattr(registry, key):
+                    setattr(registry, key, data[key])
 
+            debt = 0
+            for item in registry.generate_accounts_decoded():
+                debt += item['debt']
 
-def try_region():
-    registry = Region(r'.\src\region.txt', 8373)
-    registry.debt_date = datetime(2017, 3, 1)
-    registry.error_processor = srcutils.source_error_print
-    print registry.source_data_correct()
-    debt = 0
-    for item in registry.generate_accounts_decoded():
-        debt += item['debt']
-    print debt
+            # noinspection PyTypeChecker
+            self.assertEqual(round((debt - data['debt']) * 100), 0,
+                             'Не совпадает итоговая сумма по поставщику {}'.format(reg_name))
+
+    def test_source_data_correct(self):
+        _not_correct_regs = []
+
+        for reg_name in regs_data:
+
+            data = regs_data[reg_name]
+            prov_class = data['class']
+
+            # noinspection PyCallingNonCallable
+            registry = prov_class(**data['args_init'])
+            for key in data:
+                if hasattr(registry, key):
+                    setattr(registry, key, data[key])
+            if not registry.source_data_correct():
+                _not_correct_regs.append(reg_name)
+
+        self.assertEqual(_not_correct_regs, not_correct_regs)
+
+    def test_process_error(self):
+        self.error_data = []
+
+        def source_error_save(**kwargs):
+            self.error_data.append(kwargs.copy())
+
+        gaz_registry = Oblgaz(r'.\src\kokuy_bad.txt')
+        gaz_registry.error_processor = source_error_save
+        for _ in gaz_registry.generate_accounts_decoded():
+            pass
+
+        self.assertEqual(len(self.error_data), 1)
+        self.assertEqual(self.error_data[0]['at'], 279)
+        self.assertEqual(type(self.error_data[0]['exception']), exceptions.ValueError)
 
 
 if __name__ == '__main__':
-    try_tgk14()
-    try_oblgaz()
-    try_domremstroy()
-    try_dom()
-    try_lider()
-    try_region()
+    unittest.main()
