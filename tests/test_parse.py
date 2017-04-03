@@ -5,9 +5,9 @@ import unittest
 import exceptions
 from datetime import datetime
 
-from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region
+from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region, Avangard
 
-
+# TODO добавить проверку по количеству записей в файле
 regs_data = {
     'TGK14': {
         'class': TGK14,
@@ -40,7 +40,12 @@ regs_data = {
         'args_init': {'filename': r'.\src\region.txt', 'service_code': '8373'},
         'debt_date': datetime(2017, 3, 1),
         'debt': 16686924.89
-    }
+    },
+    'Avangard': {
+        'class': Avangard,
+        'args_init': {'filename': r'.\src\ava.xlsx'},
+        'debt': 0
+    },
 }
 
 not_correct_regs = ['Oblgaz']

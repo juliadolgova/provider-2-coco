@@ -3,6 +3,8 @@ import re
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
+import xlrd
+
 from srcutils import split_fio, array_pad
 
 
@@ -100,7 +102,7 @@ class ProvDataText(ProvData):
             if self.debt_date:
                 dict_api['period'] = self.debt_date
             else:
-                raise IOError('No data specified')
+                raise IOError('No date specified')
 
         debt = dict_re.get('debt')
         if self.delimiter != '.':
@@ -140,6 +142,55 @@ class ProvDataText(ProvData):
                         )
                     else:
                         raise
+
+    def source_data_correct(self):
+        return True
+
+
+class ProvDataExcel(ProvData):
+
+    def __init__(self, filename=''):
+        ProvData.__init__(self)
+        # код услуги, определить в наследнике
+        self._service_code = ''
+        # исходный файл
+        self._filename = filename
+        # дата, которую использовать, если в реестре нет даты. Тип datetime
+        self.debt_date = None
+        # номер первой строки с данными
+        self.first_line = 0
+
+    def set_filename(self, filename):
+        self._filename = filename
+
+    def get_filename(self):
+        return self._filename
+
+    filename = property(get_filename, set_filename, None, u'Путь к исходному файлу')
+
+    def _row_to_dict_api(self, row):
+        dict_api = self._default_dict()
+        return dict_api
+
+    def generate_accounts_decoded(self):
+
+        workbook = xlrd.open_workbook(self._filename)
+        sheet = workbook.sheet_by_index(0)
+
+        for row_index in xrange(self.first_line, sheet.nrows):
+            row = sheet.row(row_index)
+            try:
+                yield self._row_to_dict_api(row)
+            except Exception as exception_instance:
+                if self.error_processor:
+                    self.error_processor(
+                        file=self._filename,
+                        at=row_index,
+                        record=row,
+                        exception=exception_instance
+                    )
+                else:
+                    raise
 
     def source_data_correct(self):
         return True
