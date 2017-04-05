@@ -5,7 +5,7 @@ import unittest
 import exceptions
 from datetime import datetime
 
-from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region, Avangard
+from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region, Avangard, FondKapRem
 
 # TODO добавить проверку по количеству записей в файле
 regs_data = {
@@ -46,6 +46,12 @@ regs_data = {
         'args_init': {'filename': r'.\src\ava.xlsx'},
         'debt': 0
     },
+    'FondKapRem': {
+        'class': FondKapRem,
+        'args_init': {'filename': r'.\src\fkr.xlsx'},
+        'debt_date': datetime(2017, 3, 1),
+        'debt': 49629083.36
+    },
 }
 
 not_correct_regs = ['Oblgaz']
@@ -85,7 +91,9 @@ class TestProvData(unittest.TestCase):
 
             # noinspection PyTypeChecker
             self.assertEqual(round((debt - data['debt']) * 100), 0,
-                             'Не совпадает итоговая сумма по поставщику {}'.format(reg_name))
+                             ('Не совпадает итоговая сумма по поставщику {}\n' +
+                              'Сумма в файле: {}. Ожидалось: {}'
+                              ).format(reg_name, debt, data['debt']))
 
     def test_source_data_correct(self):
         _not_correct_regs = []
