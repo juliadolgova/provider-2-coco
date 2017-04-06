@@ -1,56 +1,61 @@
 # -*- coding: utf-8 -*-
-
-
 import unittest
 import exceptions
 from datetime import datetime
 
 from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region, Avangard, FondKapRem
 
-# TODO добавить проверку по количеству записей в файле
 regs_data = {
     'TGK14': {
         'class': TGK14,
         'args_init': {'filename': r'.\src\Lstgks.DBF'},
-        'debt': 33798.01
+        'debt': 33798.01,
+        'count': 107
     },
     'Domremstroy': {
         'class': Domremstroy,
         'args_init': {'filename': r'.\src\domrem.txt'},
         'debt_date': datetime(2017, 3, 1),
-        'debt': 17264479.69
+        'debt': 17264479.69,
+        'count': 4469
     },
     'Oblgaz': {
         'class': Oblgaz,
         'args_init': {'filename': r'.\src\kokuy.txt'},
-        'debt': -999598623.87
+        'debt': -999598623.87,
+        'count': 696
     },
     'Dom': {
         'class': Dom,
         'args_init': {'filename': r'.\src\Dom1_2016_12.txt', 'service_code': '3199'},
-        'debt': 0
+        'debt': 0,
+        'count': 1717
     },
     'Lider': {
         'class': Lider,
         'args_init': {'filename': r'.\src\lider.txt'},
-        'debt': 161889893.93
+        'debt': 161889893.93,
+        'count': 22091
     },
     'Region': {
         'class': Region,
         'args_init': {'filename': r'.\src\region.txt', 'service_code': '8373'},
         'debt_date': datetime(2017, 3, 1),
-        'debt': 16686924.89
+        'debt': 16686924.89,
+        'count': 2040
     },
     'Avangard': {
         'class': Avangard,
         'args_init': {'filename': r'.\src\ava.xlsx'},
-        'debt': 0
+        'debt': 0,
+        'count': 96
     },
     'FondKapRem': {
         'class': FondKapRem,
         'args_init': {'filename': r'.\src\fkr.xlsx'},
         'debt_date': datetime(2017, 3, 1),
-        'debt': 49629083.36
+        'debt': 49629083.36,
+        'count': 8690
     },
 }
 
@@ -127,6 +132,28 @@ class TestProvData(unittest.TestCase):
         self.assertEqual(len(self.error_data), 1)
         self.assertEqual(self.error_data[0]['at'], 279)
         self.assertEqual(type(self.error_data[0]['exception']), exceptions.ValueError)
+
+    def test_total_count(self):
+        for reg_name in regs_data:
+
+            data = regs_data[reg_name]
+            prov_class = data['class']
+
+            # noinspection PyCallingNonCallable
+            registry = prov_class(**data['args_init'])
+            for key in data:
+                if hasattr(registry, key):
+                    setattr(registry, key, data[key])
+
+            count = 0
+            for _ in registry.generate_accounts_decoded():
+                count += 1
+
+            # noinspection PyTypeChecker
+            self.assertEqual(data['count'], count,
+                             ('Не совпадает количество по поставщику {}\n' +
+                              'Количество в файле: {}. Ожидалось: {}'
+                              ).format(reg_name, count, data['count']))
 
 
 if __name__ == '__main__':
