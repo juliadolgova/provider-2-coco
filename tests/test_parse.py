@@ -10,52 +10,60 @@ regs_data = {
         'class': TGK14,
         'args_init': {'filename': r'.\src\Lstgks.DBF'},
         'debt': 33798.01,
-        'count': 107
+        'count': 107,
+        'mnemo_coco': 'ch_tgk14'
     },
     'Domremstroy': {
         'class': Domremstroy,
         'args_init': {'filename': r'.\src\domrem.txt'},
         'debt_date': datetime(2017, 3, 1),
         'debt': 17264479.69,
-        'count': 4469
+        'count': 4469,
+        'mnemo_coco': 'ch_domremstroy'
     },
     'Oblgaz': {
         'class': Oblgaz,
         'args_init': {'filename': r'.\src\kokuy.txt'},
         'debt': -999598623.87,
-        'count': 696
+        'count': 696,
+        'mnemo_coco': 'ch_chitaoblgaz'
     },
     'Dom': {
         'class': Dom,
         'args_init': {'filename': r'.\src\Dom1_2016_12.txt', 'service_code': '3199'},
         'debt': 0,
-        'count': 1717
+        'count': 1717,
+        'mnemo_coco': 'ch_dom1'
     },
     'Lider': {
         'class': Lider,
         'args_init': {'filename': r'.\src\lider.txt'},
         'debt': 161889893.93,
-        'count': 22091
+        'count': 22091,
+        'mnemo_coco': 'ch_lider'
     },
     'Region': {
         'class': Region,
         'args_init': {'filename': r'.\src\region.txt', 'service_code': '8373'},
         'debt_date': datetime(2017, 3, 1),
         'debt': 16686924.89,
-        'count': 2040
+        'count': 2040,
+        'mnemo_coco': 'ch_region'
     },
     'Avangard': {
         'class': Avangard,
         'args_init': {'filename': r'.\src\ava.xlsx'},
         'debt': 0,
-        'count': 96
+        'count': 96,
+        'mnemo_coco': 'ch_avangard'
     },
     'FondKapRem': {
         'class': FondKapRem,
         'args_init': {'filename': r'.\src\fkr.xlsx'},
         'debt_date': datetime(2017, 3, 1),
         'debt': 49629083.36,
-        'count': 8690
+        'count': 8690,
+        'mnemo_coco': 'ch_zabfkr'
     },
 }
 

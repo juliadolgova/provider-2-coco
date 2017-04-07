@@ -33,7 +33,7 @@ def split_fio(fio):
 def source_error_print(**kwargs):
     print 'Ошибка при преобразовании данных из файла {}'.format(kwargs['file'])
     print '#: {}'.format(kwargs['at'])
-    print 'Запись: {}'.format(kwargs['record'].strip())
+    print 'Запись: {}'.format(str(kwargs['record']).strip())
     print 'Exception: {}'.format(kwargs['exception'])
     print ''
 
@@ -47,3 +47,12 @@ def array_pad(lst, size, value):
         return lst + [value] * (size - len(lst))
     else:
         return [value] * (-size - len(lst)) + lst
+
+
+def value_to_str(num):
+    if type(num) == unicode or type(num) == str:
+        return num
+    elif type(num) == float and num.is_integer():
+        return str(int(num))
+    else:
+        return str(num)

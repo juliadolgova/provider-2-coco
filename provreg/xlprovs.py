@@ -3,6 +3,7 @@ import re
 from datetime import datetime
 
 from provreg import ProvDataExcel
+from provreg.srcutils import value_to_str
 
 
 class Avangard(ProvDataExcel):
@@ -15,14 +16,14 @@ class Avangard(ProvDataExcel):
 
     def _row_to_dict_api(self, row):
         dict_api = ProvDataExcel._row_to_dict_api(self, row)
-        dict_api['number'] = row[1].value
+        dict_api['number'] = value_to_str(row[1].value)
         dict_api['lastname'] = row[2].value
         dict_api['firstname'] = row[3].value
         dict_api['middlename'] = row[4].value
         dict_api['city'] = row[7].value
         dict_api['street'] = row[9].value
-        dict_api['house'] = row[10].value
-        dict_api['flat'] = row[11].value
+        dict_api['house'] = value_to_str(row[10].value)
+        dict_api['flat'] = value_to_str(row[11].value)
 
         debt_date = re.search(self.date_re, row[12].value).group(0)
         dict_api['period'] = datetime.strptime(debt_date, self._format_datetime)
