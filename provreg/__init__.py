@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# TODO Либо всех поставщиков в разные модули, либо всех в один (лучше второе)
 from .provdata import ProvData, ProvDataText, ProvDataExcel
 from .dom import Dom
 from .oblgaz import Oblgaz

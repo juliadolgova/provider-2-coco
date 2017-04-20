@@ -8,11 +8,15 @@ import xlrd
 from srcutils import split_fio, array_pad
 
 
+# TODO Перенести свойство filename в самый верхний класс, т.к. вероятность использовать другие источники мала
+# к тому же логика остальных модулей (вне пакета provreg) подразумевает, что все провайдеры передают файлы
+# TODO Убрать error_processor, подумать как обрабатывать на верхнем уровне
 class ProvData:
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        # Обработчик исключений при чтении/преобразовании записи в источнике данных в generate_accounts_decoded()
+        # Функция-обработчик исключений при чтении/преобразовании записи
+        # в источнике данных в generate_accounts_decoded()
         self.error_processor = None
 
     def get_records_count(self):

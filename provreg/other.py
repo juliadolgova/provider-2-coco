@@ -4,6 +4,7 @@ from oblgaz import Oblgaz
 from provdata import ProvDataText
 
 
+# TODO Переделать: наследовать от облгаза неправильно. В данном случае лучше повториться
 class Lider(Oblgaz):
     def __init__(self, filename=''):
         Oblgaz.__init__(self, filename=filename)

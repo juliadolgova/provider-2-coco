@@ -1,4 +1,7 @@
 ﻿# -*- encoding: utf-8 -*-
+"""
+В параметрах методов import_accounts, import_balances дата должна быть типа datetime
+"""
 import pgpxmlrpc
 from functools import partial
 
