@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
-import traceback
-import sys
 
 
+# TODO: Сделать по-человечески
+# TODO: Сделать тест
 def split_fio(fio):
     lastname, firstname, middlename = ['', '', '']
 
@@ -31,10 +31,21 @@ def split_fio(fio):
     return [lastname, firstname, middlename]
 
 
-def process_source_exception(description, instance_exception):
-    print description
-    print traceback.format_exception(*sys.exc_info())
-
-
 def process_error(description):
     print description
+
+
+def array_pad(lst, size, value):
+    if size >= 0:
+        return lst + [value] * (size - len(lst))
+    else:
+        return [value] * (-size - len(lst)) + lst
+
+
+def value_to_str(num):
+    if type(num) == unicode or type(num) == str:
+        return num
+    elif type(num) == float and num.is_integer():
+        return str(int(num))
+    else:
+        return str(num)
