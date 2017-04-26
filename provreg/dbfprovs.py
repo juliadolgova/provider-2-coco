@@ -5,13 +5,47 @@ from datetime import date, datetime, time
 from provdata import ProvData
 
 
-class TGK14(ProvData):
+class ProvDataDBF(ProvData):
     def __init__(self, filename=''):
         ProvData.__init__(self)
         # исходный файл
         self.filename = filename
         # кодировка исходного файла
         self._coding = 'cp1251'
+
+    def _record_to_dict_api(self, record):
+        dict_api = self._default_dict()
+        return dict_api
+
+    def generate_accounts_decoded(self):
+        self.error_count = 0
+        record_num = 0
+        db = dbf.Dbf(self.filename)
+
+        for record in db:
+            record_num += 1
+            try:
+                yield self._record_to_dict_api(record)
+            except Exception as exception_instance:
+                if self.error_processor:
+                    self.error_count += 1
+                    self.error_processor(
+                        file=self.filename,
+                        at=record_num,
+                        record=record,
+                        exception=exception_instance
+                    )
+                else:
+                    raise
+
+    def source_data_correct(self):
+        """Проверять нечего. Возвращает True"""
+        return True
+
+
+class TGK14(ProvDataDBF):
+    def __init__(self, filename=''):
+        ProvDataDBF.__init__(self, filename)
 
         # Заголовки в исходном файле ТГК14:
         # NLS	L_NAME	F_NAME	M_NAME	CITY	NAIM	DOM	FLAT	DATE	VID_SERV	SALDO_TGK	CHARGE
@@ -48,29 +82,3 @@ class TGK14(ProvData):
                 record_field = destination_type(record_field)
             dict_api[key] = record_field
         return dict_api
-
-    # TODO вынести в отдельный класс для dbf
-    def generate_accounts_decoded(self):
-        self.error_count = 0
-        record_num = 0
-        db = dbf.Dbf(self.filename)
-
-        for record in db:
-            record_num += 1
-            try:
-                yield self._record_to_dict_api(record)
-            except Exception as exception_instance:
-                if self.error_processor:
-                    self.error_count += 1
-                    self.error_processor(
-                        file=self.filename,
-                        at=record_num,
-                        record=record,
-                        exception=exception_instance
-                    )
-                else:
-                    raise
-
-    def source_data_correct(self):
-        """Проверять нечего. Возвращает True"""
-        return True
