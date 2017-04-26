@@ -256,10 +256,15 @@ class Loader(object):
                             self.tuk.update_registry(provdata.registry_id, {
                                 'STATUS': RS_LOADED,
                                 'MAX_DEBT_DATE': max_debt_date,
-                                'LAST_IMPORTED_ITEM': i - 1
+                                'LAST_IMPORTED_ITEM': i-1,
+                                'ERROR_COUNT': provdata.error_count
                             })
                         else:
-                            self.tuk.update_registry(provdata.registry_id, {'STATUS': RS_CRITICAL_ERROR_COUNT})
+                            self.tuk.update_registry(provdata.registry_id, {
+                                'STATUS': RS_CRITICAL_ERROR_COUNT,
+                                'LAST_IMPORTED_ITEM': i-1,
+                                'ERROR_COUNT': provdata.error_count
+                            })
 
 
 class Deleter(object):
