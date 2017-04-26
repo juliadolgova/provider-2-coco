@@ -2,8 +2,52 @@
 import re
 from datetime import datetime
 
-from provreg import ProvDataExcel
+import xlrd
+
+from provreg import ProvData
 from provreg.srcutils import value_to_str
+
+
+class ProvDataExcel(ProvData):
+
+    def __init__(self, filename=''):
+        ProvData.__init__(self)
+        # код услуги, определить в наследнике
+        self._service_code = ''
+        # исходный файл
+        self.filename = filename
+        # дата, которую использовать, если в реестре нет даты. Тип datetime
+        self.debt_date = None
+        # номер первой строки с данными
+        self.first_line = 0
+
+    def _row_to_dict_api(self, row):
+        dict_api = self._default_dict()
+        return dict_api
+
+    def generate_accounts_decoded(self):
+        self.error_count = 0
+        workbook = xlrd.open_workbook(self.filename)
+        sheet = workbook.sheet_by_index(0)
+
+        for row_index in xrange(self.first_line, sheet.nrows):
+            row = sheet.row(row_index)
+            try:
+                yield self._row_to_dict_api(row)
+            except Exception as exception_instance:
+                if self.error_processor:
+                    self.error_count += 1
+                    self.error_processor(
+                        file=self.filename,
+                        at=row_index,
+                        record=row,
+                        exception=exception_instance
+                    )
+                else:
+                    raise
+
+    def source_data_correct(self):
+        return True
 
 
 class Avangard(ProvDataExcel):
@@ -55,15 +99,3 @@ class FondKapRem(ProvDataExcel):
         dict_api['service'] = self._service_code
         dict_api['debt'] = float(row[8].value) if row[8].value else 0
         return dict_api
-
-# 0	ACCOUNT	100000268
-# 1	REGION
-# 2	TERRITOTY	г. Чита
-# 3	TOWN	Чита
-# 4	PREFSTREET	ул
-# 5	STREET	Энгельса
-# 6	BUILDING	57
-# 7	FLAT	3
-# 8	indebted	-337.51000
-# 9	Ban account	40604810374000000386
-# 10	BIC	047601637
