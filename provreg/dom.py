@@ -46,7 +46,7 @@ class Dom(ProvDataText):
     def source_data_correct(self):
         file_sum_header = float(self._get_header_param_value('FILESUM'))
 
-        with open(self._filename, 'r') as f:
+        with open(self.filename, 'r') as f:
             file_sum_records = 0
             for line in f:
                 m = re.match(self._line_re, line)

@@ -2,6 +2,7 @@
 
 
 # TODO: Сделать по-человечески
+# TODO: Сделать тест
 def split_fio(fio):
     lastname, firstname, middlename = ['', '', '']
 
@@ -28,14 +29,6 @@ def split_fio(fio):
         # Оставляем Ф.И.О. пустыми
         pass
     return [lastname, firstname, middlename]
-
-
-def source_error_print(**kwargs):
-    print 'Ошибка при преобразовании данных из файла {}'.format(kwargs['file'])
-    print '#: {}'.format(kwargs['at'])
-    print 'Запись: {}'.format(str(kwargs['record']).strip())
-    print 'Exception: {}'.format(kwargs['exception'])
-    print ''
 
 
 def process_error(description):

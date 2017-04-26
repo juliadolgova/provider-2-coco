@@ -5,18 +5,19 @@ import random
 import settings
 import coco
 from test_parse import regs_data
-from provreg.srcutils import source_error_print
+from utils import source_error_print
 
 
+# TODO: тест ошибки возвращаемой кокосом
 class TestCoco(unittest.TestCase):
 
     def test_connection_to_coco(self):
-        coco_service = coco.CoconutService(**settings.TEST_COCONUT_SETTINGS)
+        coco_service = coco.CoconutService(settings.TEST_COCONUT_SETTINGS)
         coco_service.print_methods_help()
 
     # TODO: Не забыть протестировать балансы
     def test_random_import(self):
-        coco_service = coco.CoconutService(**settings.TEST_COCONUT_SETTINGS)
+        coco_service = coco.CoconutService(settings.TEST_COCONUT_SETTINGS)
 
         for reg_name in regs_data:
 

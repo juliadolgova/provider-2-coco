@@ -27,7 +27,7 @@ def get_debt_date(filename, date_source):
         debt_date = datetime.fromtimestamp(os.path.getmtime(filename))
     elif date_source == DS_DATE_FILE_CREATED:
         debt_date = datetime.fromtimestamp(os.path.getctime(filename))
-
+    debt_date = datetime(debt_date.year, debt_date.month, debt_date.day)
     return debt_date
 
 
@@ -85,12 +85,12 @@ def get_provdata_to_load(path, tuk, error_processor=None):
                 full_filename = os.path.join(item[0], _file)
                 init_params = dict()
                 init_params['filename'] = full_filename
-                if provider['SERVICE_CODE']:
+                if provider['SERVICE_CODE'].strip():
                     init_params['service_code'] = provider['SERVICE_CODE']
                 prov_class = getattr(provreg, provider['CLASS_NAME'])
 
                 registry = prov_class(**init_params)
-                if provider['DATE_SOURCE']:
+                if provider['DATE_SOURCE'].strip():
                     registry.debt_date = get_debt_date(full_filename, provider['DATE_SOURCE'])
                 registry.error_processor = error_processor
 

@@ -9,7 +9,7 @@ class TGK14(ProvData):
     def __init__(self, filename=''):
         ProvData.__init__(self)
         # исходный файл
-        self._filename = filename
+        self.filename = filename
         # кодировка исходного файла
         self._coding = 'cp1251'
 
@@ -32,14 +32,6 @@ class TGK14(ProvData):
             'debt': ['CHARGE', float, float]
         }
 
-    def set_filename(self, filename):
-        self._filename = filename
-
-    def get_filename(self):
-        return self._filename
-
-    filename = property(get_filename, set_filename, None, u'Имя исходного файла')
-
     def _record_to_dict_api(self, record):
         dict_api = self._default_dict()
         for key in self._fields_map:
@@ -57,17 +49,21 @@ class TGK14(ProvData):
             dict_api[key] = record_field
         return dict_api
 
+    # TODO вынести в отдельный класс для dbf
     def generate_accounts_decoded(self):
+        self.error_count = 0
         record_num = 0
-        db = dbf.Dbf(self._filename)
+        db = dbf.Dbf(self.filename)
+
         for record in db:
             record_num += 1
             try:
                 yield self._record_to_dict_api(record)
             except Exception as exception_instance:
                 if self.error_processor:
+                    self.error_count += 1
                     self.error_processor(
-                        file=self._filename,
+                        file=self.filename,
                         at=record_num,
                         record=record,
                         exception=exception_instance

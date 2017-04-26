@@ -7,7 +7,7 @@ from functools import partial
 
 
 class CoconutService(object):
-    def __init__(self, **dict_api):
+    def __init__(self, dict_api):
         self.coconut = pgpxmlrpc.Service(
             uri=dict_api['uri'],
             service_key=dict_api['skey'],

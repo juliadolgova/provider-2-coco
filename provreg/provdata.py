@@ -8,9 +8,8 @@ import xlrd
 from srcutils import split_fio, array_pad
 
 
-# TODO Перенести свойство filename в самый верхний класс, т.к. вероятность использовать другие источники мала
-# к тому же логика остальных модулей (вне пакета provreg) подразумевает, что все провайдеры передают файлы
-# TODO Убрать error_processor, подумать как обрабатывать на верхнем уровне
+# TODO Переделать как класс-итератор
+# noinspection PyTypeChecker
 class ProvData:
     __metaclass__ = ABCMeta
 
@@ -18,6 +17,19 @@ class ProvData:
         # Функция-обработчик исключений при чтении/преобразовании записи
         # в источнике данных в generate_accounts_decoded()
         self.error_processor = None
+        # исходный файл
+        self._filename = None
+        # количество ошибок при обработке файла
+        self.error_count = 0
+
+    def set_filename(self, filename):
+        self._filename = filename
+        self.error_count = 0
+
+    def get_filename(self):
+        return self._filename
+
+    filename = property(get_filename, set_filename, None, u'Путь к исходному файлу')
 
     def get_records_count(self):
         return None
@@ -35,6 +47,18 @@ class ProvData:
         """Возвращает словарь для импорта в кокос"""
         pass
 
+    def generate_block_accounts(self, blocksize):
+        i = 0
+        accounts_list = []
+        for item in self.generate_accounts_decoded():
+            i += 1
+            accounts_list.append(item)
+            if i % blocksize == 0:
+                yield accounts_list
+                accounts_list = []
+        if accounts_list:
+            yield accounts_list
+
     @abstractmethod
     def source_data_correct(self):
         """Сообщает корректные ли данные"""
@@ -51,6 +75,13 @@ class ProvData:
             'pfxstreet': u''
         }
 
+    def get_max_debt_date(self):
+        max_debt_date = datetime(2000, 1, 1)
+        for item in self.generate_accounts_decoded():
+            if item['period'] > max_debt_date:
+                max_debt_date = item['period']
+        return max_debt_date
+
 
 class ProvDataText(ProvData):
     """
@@ -63,7 +94,7 @@ class ProvDataText(ProvData):
         # код услуги, определить в наследнике
         self._service_code = ''
         # исходный файл
-        self._filename = filename
+        self.filename = filename
         # кодировка исходного файла
         self._coding = 'cp1251'
         # пример регулярного выражения, переопределить в наследнике при необходимости
@@ -80,14 +111,6 @@ class ProvDataText(ProvData):
         self.debt_date = None
         # разделитель дробной и целой части
         self.delimiter = '.'
-
-    def set_filename(self, filename):
-        self._filename = filename
-
-    def get_filename(self):
-        return self._filename
-
-    filename = property(get_filename, set_filename, None, u'Путь к исходному файлу')
 
     def _dict_re_to_dict_api(self, dict_re):
         dict_api = self._default_dict()
@@ -115,7 +138,7 @@ class ProvDataText(ProvData):
         return dict_api
 
     def _get_header_param_value(self, param_name):
-        with open(self._filename, 'r') as f:
+        with open(self.filename, 'r') as f:
             source_lines = f.readlines(self._bufferPreAnalyze)[:self._linesCountPreAnalyze]
 
         for line in source_lines:
@@ -125,8 +148,10 @@ class ProvDataText(ProvData):
         return None
 
     def generate_accounts_decoded(self):
+        self.error_count = 0
         line_num = 0
-        with open(self._filename, 'r') as f:
+
+        with open(self.filename, 'r') as f:
             for line in f:
                 line_num += 1
                 try:
@@ -138,8 +163,9 @@ class ProvDataText(ProvData):
                         yield self._dict_re_to_dict_api(m.groupdict())
                 except Exception as exception_instance:
                     if self.error_processor:
+                        self.error_count += 1
                         self.error_processor(
-                            file=self._filename,
+                            file=self.filename,
                             at=line_num,
                             record=line,
                             exception=exception_instance
@@ -158,27 +184,19 @@ class ProvDataExcel(ProvData):
         # код услуги, определить в наследнике
         self._service_code = ''
         # исходный файл
-        self._filename = filename
+        self.filename = filename
         # дата, которую использовать, если в реестре нет даты. Тип datetime
         self.debt_date = None
         # номер первой строки с данными
         self.first_line = 0
-
-    def set_filename(self, filename):
-        self._filename = filename
-
-    def get_filename(self):
-        return self._filename
-
-    filename = property(get_filename, set_filename, None, u'Путь к исходному файлу')
 
     def _row_to_dict_api(self, row):
         dict_api = self._default_dict()
         return dict_api
 
     def generate_accounts_decoded(self):
-
-        workbook = xlrd.open_workbook(self._filename)
+        self.error_count = 0
+        workbook = xlrd.open_workbook(self.filename)
         sheet = workbook.sheet_by_index(0)
 
         for row_index in xrange(self.first_line, sheet.nrows):
@@ -187,8 +205,9 @@ class ProvDataExcel(ProvData):
                 yield self._row_to_dict_api(row)
             except Exception as exception_instance:
                 if self.error_processor:
+                    self.error_count += 1
                     self.error_processor(
-                        file=self._filename,
+                        file=self.filename,
                         at=row_index,
                         record=row,
                         exception=exception_instance
