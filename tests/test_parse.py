@@ -4,8 +4,45 @@ import exceptions
 from datetime import datetime
 
 from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region, Avangard, FondKapRem
+from provreg import Vodokanal, Zhilkom, Ingoda, Perspektiva, SMD, Teplovodokanal, Severniy
 
 regs_data = {
+    'SMD': {
+        'class': SMD,
+        'args_init': {'filename': r'.\src\smd.txt'},
+        'debt': 20096316.18,
+        'count': 49380,
+        'mnemo_coco': 'ch_smd'
+    },
+    'Perspektiva': {
+        'class': Perspektiva,
+        'args_init': {'filename': r'.\src\perspektiva.txt'},
+        'debt': 9368081.40,
+        'count': 2211,
+        'mnemo_coco': 'ch_perspektiva'
+    },
+    'Ingoda': {
+        'class': Ingoda,
+        'args_init': {'filename': r'.\src\ingoda.txt'},
+        'debt_date': datetime(2017, 3, 1),
+        'debt': 4632685.56,
+        'count': 2067,
+        'mnemo_coco': 'ch_ingoda'
+    },
+    'Zhilkom': {
+        'class': Zhilkom,
+        'args_init': {'filename': r'.\src\zhilkom.txt'},
+        'debt': 717546.54,
+        'count': 743,
+        'mnemo_coco': 'ch_zhilkom'
+    },
+    'Vodokanal': {
+        'class': Vodokanal,
+        'args_init': {'filename': r'.\src\vodokanal_s.DBF'},
+        'debt': 183218.99,
+        'count': 144,
+        'mnemo_coco': 'ch_vodokanal'
+    },
     'TGK14': {
         'class': TGK14,
         'args_init': {'filename': r'.\src\Lstgks.DBF'},
@@ -67,7 +104,7 @@ regs_data = {
     },
 }
 
-not_correct_regs = ['Oblgaz']
+not_correct_regs = ['Oblgaz', 'SMD']
 
 
 class TestProvData(unittest.TestCase):

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# TODO Либо всех поставщиков в разные модули, либо всех в один (лучше второе)
 from .provdata import ProvData
-from .tgk14 import TGK14
-from .txtprovs import Domremstroy, Oblgaz, Dom, Lider, Region, ProvDataText
-from xlprovs import Avangard, FondKapRem, ProvDataExcel
+from .dbfprovs import ProvDataDBF, TGK14, Vodokanal, Teplovodokanal, Severniy
+from .txtprovs import ProvDataText, Domremstroy, Oblgaz, Dom, Lider, Region, Zhilkom, Ingoda, Perspektiva, SMD
+from xlprovs import ProvDataExcel, Avangard, FondKapRem
 
 __all__ = (
-    'ProvData', 'ProvDataText', 'ProvDataExcel',
+    'ProvData', 'ProvDataText', 'ProvDataExcel', 'ProvDataDBF',
     'Dom', 'Oblgaz', 'TGK14', 'Domremstroy', 'Lider', 'Region',
-    'Avangard', 'FondKapRem'
+    'Avangard', 'FondKapRem', 'Vodokanal', 'Teplovodokanal',
+    'Zhilkom', 'Ingoda', 'Perspektiva', 'SMD', 'Severniy'
 )

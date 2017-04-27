@@ -84,6 +84,9 @@ class ProvDataText(ProvData):
                     m = re.match(self._line_re, line_decoded)
                     if m:
                         yield self._dict_re_to_dict_api(m.groupdict())
+                    else:
+                        if __debug__:
+                            print line_decoded
                 except Exception as exception_instance:
                     if self.error_processor:
                         self.error_count += 1
@@ -199,7 +202,7 @@ class Oblgaz(ProvDataText):
         # Регулярки для сборки _line_re
         abonent_re = r'(?P<abonent>.*)'
         address_re = r'(?P<address>.*)'
-        account_re = r'(?P<account>[a-z0-9A-Z]+)'
+        account_re = r'(?P<account>.*)'  # Принимаются любые символы в лицевом счете!
         debt_re = r'(?P<debt>%(num_re)s)' % {'num_re': num_re}
         f5_re = r'(?P<f5>.*)'
         datefrom_re = r'(?P<datefrom>%(date_re)s)' % {'date_re': date_re}
@@ -219,10 +222,29 @@ class Oblgaz(ProvDataText):
         return round(file_sum_header - file_sum_records, 2) == 0
 
 
-# TODO Переделать: наследовать от облгаза неправильно. В данном случае лучше повториться
+# TODO Переделать: наследовать от Облгаза неправильно. В данном случае лучше повториться (?)
 class Lider(Oblgaz):
     def __init__(self, filename=''):
         Oblgaz.__init__(self, filename=filename)
+        # ЯНЕЕВА МАРИНА АЛЕКСАНДРОВНА;ЧИТА,БАТАРЕЙНЫЙ МКР,2,1;097283;14190.62;;01/12/16;31/12/16;31:14190.62:
+        self._format_datetime = r'%d/%m/%y'
+        self._service_code = self._get_header_param_value('SERVICE')
+
+
+class Perspektiva(Oblgaz):
+    def __init__(self, filename=''):
+        Oblgaz.__init__(self, filename=filename)
+        # Пример строки поставщика
+        # Белова Екатерина Евгеньевна;Чита,Северный мкр,3,2;01003002;8302.85;;01/11/2016;30/11/2016;
+        self._format_datetime = r'%d/%m/%Y'
+        self._service_code = self._get_header_param_value('SERVICE')
+
+
+class SMD(Oblgaz):
+    def __init__(self, filename=''):
+        Oblgaz.__init__(self, filename=filename)
+        # Пример строки поставщика
+        # КАЗАКОВА Е Н;ЧИТА,СИЛИКАТНЫЙ,5,1;1272001;660.00;;01/11/16;30/11/16;
         self._format_datetime = r'%d/%m/%y'
         self._service_code = self._get_header_param_value('SERVICE')
 
@@ -251,4 +273,70 @@ class Region(ProvDataText):
             address_re,
             debt_re,
             ''
+        ])
+
+
+class Zhilkom(ProvDataText):
+    def __init__(self, filename=''):
+        ProvDataText.__init__(self, filename)
+        # Код услуги
+        self._service_code = '8468'
+        self._set_debt_date_from_header()
+
+        # Пример строки для поставщика:
+        # Осипова Любовь Владимировна;Чита г,3-я Каштакская ул,1А,24;10024;1126.36
+        # Регулярки вспомогательные
+        num_re = r'[-+]?[0-9]*[.,]?[0-9]+'
+
+        # Регулярки для сборки _line_re
+        abonent_re = r'(?P<abonent>.*)'
+        address_re = r'(?P<address>.*)'
+        account_re = r'(?P<account>[a-z0-9A-Z]+)'
+        debt_re = r'(?P<debt>(%(num_re)s)?)' % {'num_re': num_re}
+
+        self._line_re = ';'.join([
+            abonent_re,
+            address_re,
+            account_re,
+            debt_re
+        ])
+
+    def _set_debt_date_from_header(self):
+        """
+        Устанавливает дату debt_date на основании заголовка.
+        Пример заголовка:
+        #NOTE 01.09.14-30.09.14
+        """
+        h_dates = self._get_header_param_value('NOTE')
+        date_re_simple = r'(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.\d\d'
+        notes_re = r'(?P<datefrom>%(date_re)s)-(?P<dateto>%(date_re)s)' % {'date_re': date_re_simple}
+        m = re.match(notes_re, h_dates)
+        if m:
+            self.debt_date = datetime.strptime(m.group('dateto'), '%d.%m.%y')
+        else:
+            self.debt_date = None
+
+
+class Ingoda(ProvDataText):
+    def __init__(self, filename=''):
+        ProvDataText.__init__(self, filename)
+        # Код услуги
+        self._service_code = '5708'
+
+        # Пример строки для поставщика:
+        # 112038;Отфиновский А. В.;Чита,Байкальская,15,1;2900.21
+        # Регулярки вспомогательные
+        num_re = r'[-+]?[0-9]*[.,]?[0-9]+'
+
+        # Регулярки для сборки _line_re
+        abonent_re = r'(?P<abonent>.*)'
+        address_re = r'(?P<address>.*)'
+        account_re = r'(?P<account>[a-z0-9A-Z]+)'
+        debt_re = r'(?P<debt>(%(num_re)s)?)' % {'num_re': num_re}
+
+        self._line_re = ';'.join([
+            account_re,
+            abonent_re,
+            address_re,
+            debt_re
         ])
