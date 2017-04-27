@@ -6,7 +6,6 @@ from datetime import datetime
 from provreg import TGK14, Domremstroy, Oblgaz, Dom, Lider, Region, Avangard, FondKapRem
 from provreg import Vodokanal, Zhilkom, Ingoda, Perspektiva, SMD, Teplovodokanal, Severniy
 
-# TODO: add Teplovodokanal, Severniy
 regs_data = {
     'SMD': {
         'class': SMD,
