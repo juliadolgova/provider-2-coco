@@ -40,7 +40,7 @@ class ProvDataText(ProvData):
         dict_api['number'] = dict_re.get('account')
         dict_api['lastname'], dict_api['firstname'], dict_api['middlename'] = split_fio(dict_re.get('abonent'))
 
-        splitted_address = array_pad(dict_re.get('address').strip().rsplit(',', 4), 4, '')
+        splitted_address = array_pad(dict_re.get('address').strip().rsplit(',', 3), 4, '')
         dict_api['city'], dict_api['street'], dict_api['house'], dict_api['flat'] = splitted_address
 
         dict_api['service'] = self._service_code
