@@ -252,12 +252,15 @@ class Loader(object):
                             raise
                     else:
                         if provdata.error_count < CRITICAL_ERROR_COUNT:
+                            error_count = provdata.error_count
+                            # следующим оператором provdata.error_count поменяется
+                            # если до этого был обход не всех элементов
                             max_debt_date = self._calc_registry_date(provdata)
                             self.tuk.update_registry(provdata.registry_id, {
                                 'STATUS': RS_LOADED,
                                 'MAX_DEBT_DATE': max_debt_date,
                                 'LAST_IMPORTED_ITEM': i-1,
-                                'ERROR_COUNT': provdata.error_count
+                                'ERROR_COUNT': error_count
                             })
                         else:
                             self.tuk.update_registry(provdata.registry_id, {
