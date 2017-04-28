@@ -32,11 +32,12 @@ def task_delete_error_print(**kwargs):
 
 
 def source_error_log(logger, **kwargs):
+    exception = kwargs['exception']
     error_msg = '\n'.join([
         'Error while converting data in file {}'.format(kwargs['file'].encode(LOGS_ENCODING)),
         '#: {}'.format(kwargs['at']),
         'Record: {}'.format(str(kwargs['record']).strip()),
-        'Exception: {}'.format(kwargs['exception']),
+        'Exception: {}, {}'.format(type(exception), exception),
         ''
     ])
     logger.info(error_msg)
@@ -47,9 +48,10 @@ def files_error_log(logger, **kwargs):
     _filename = provdata.filename
     if type(_filename) == unicode:
         _filename = _filename.encode(LOGS_ENCODING)
+    exception = kwargs['exception']
     error_msg = '\n'.join([
         'Error while loading file {}'.format(_filename),
-        'Exception: {}'.format(kwargs['exception']),
+        'Exception: {}, {}'.format(type(exception), exception),
         ''
     ])
     logger.info(error_msg)
